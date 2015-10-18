@@ -402,9 +402,9 @@ minetest.register_tool("airshipland:Energyblock", {
 minetest.register_craft({
 	output = "airshipland:Energyblock",
 	recipe = {
-		{"default:mese","default:mese","default:mese"},
-		{"default:mese", "",           "default:mese"},
-		{"default:mese", "default:mese", "default:mese"},
+		{"default:mese_crystal","default:mese_crystal","default:mese_crystal"},
+		{"default:mese_crystal",  "",                   "default:mese_crystal"},
+		{"default:mese_crystal", "default:mese_crystal", "default:mese_crystal"},
 	},
 })
 
