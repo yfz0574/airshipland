@@ -132,6 +132,7 @@ function airship.on_step(self, dtime)
 	
 	if self.driver then
 		name=self.driver:get_player_name()
+		local player_inv = self.driver:get_inventory()
 		local inv=minetest.get_inventory({type="detached", name=name.."_convertor"}) 
 		local pos=self.object:getpos()
 		local uppos,downpos={x=pos.x,y=pos.y+1,z=pos.z},{x=pos.x,y=pos.y-1,z=pos.z}
@@ -143,7 +144,6 @@ function airship.on_step(self, dtime)
 				local usenumber=nil
 				for i=1, 6 do
 					local stack=inv:get_stack("convertor", i)
-					--			print(stack:to_string())
 					local 	wear=stack:get_wear()	
 					local StackName=stack:get_name()
 					if StackName=="airshipland:Energyblock" and wear<65500 then --wear max is 65535
@@ -153,11 +153,17 @@ function airship.on_step(self, dtime)
 						local downnode=minetest.get_node(downpos)
 						if downnode.name=="air" then
 							--if not minetest.setting_getbool("creative_mode") then  --creative mode is not need this airship ??
+							local energyV=tonumber(stack:get_metadata())
 							if self.highspeed==true then 
+								energyV=energyV-(65535 /uses *1*10)
 								stack:add_wear(65535 /uses *1*10)   --can use at about 3.5 minutes.
-							else stack:add_wear(65535 /uses *1) --can use at about 35 minutes.
+							else 
+								energyV=energyV-(65535 /uses *1)
+								stack:add_wear(65535 /uses *1) --can use at about 35 minutes.
 							end
+							stack:set_metadata(tostring(energyV))
 							inv:set_stack("convertor", i, stack)
+							player_inv:set_stack("convertor", i, stack)
 							usenumber=i
 							break
 						end
@@ -169,7 +175,6 @@ function airship.on_step(self, dtime)
 					local downnode=minetest.get_node(downpos)
 					if downnode.name=="air" then
 						WARNINGTIME=WARNINGTIME+1
-						--print("WARNINGTIME1="..WARNINGTIME)
 						if WARNINGTIME==1 or WARNINGTIME==330 then  --Tip at first and after 10 second.
 							minetest.chat_send_player(name,"WARNING!The airship emergy is less,if very less,It will auto crash landed.")
 						end
@@ -185,7 +190,6 @@ function airship.on_step(self, dtime)
 				local node=minetest.get_node(downpos)
 				if node.name=="air" then
 					WARNINGTIME=WARNINGTIME+1
-					--print("WARNINGTIME2="..WARNINGTIME)
 					if WARNINGTIME==1 or WARNINGTIME==330 then 
 						minetest.chat_send_player(name,"WARNING!The airship emergy is less,if very less,It will auto crash landed.")
 					end

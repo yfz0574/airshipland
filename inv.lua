@@ -1,4 +1,5 @@
 CONVERT_MOD_NAME=modname
+
 CONVERT_INIT_DELAY = 1
 CONVERT_INIT_TIMES = 1
 CONVERT_BONES_DELAY = 1
@@ -78,8 +79,8 @@ convertor= {
 		.."button[7,3;1,1.5;Recharge;Recharge]"
 		.."list[detached:player_name_convertor;ShipStage;5,2;1,1;]"
 		.."tooltip[Recharge;Give the energy block charge]"
-		--.."checkbox[3,3;ishighspeed;high speed lift mod;false;if selected the airship will fast lift and Consume ten times the energy.]"
-		.."checkbox[3,3;ishighspeed;high speed lift;"..tostring(airship.highspeed).."]",
+		--.."checkbox[3,3;ishighspeed;high speed mod;false;if selected the airship will fast lift and Consume ten times the energy.]"
+		.."checkbox[3,3;ishighspeed;high speed;"..tostring(airship.highspeed).."]",
 	textures = {},
 	default_skin = "character",
 	version = "0.4.4",
@@ -98,8 +99,8 @@ if minetest.get_modpath("inventory_plus") then
 		.."button[7,3;1,1.5;Recharge;Recharge]"
 		.."list[detached:player_name_convertor;ShipStage;5,2;1,1;]"
 		.."tooltip[Recharge;Give the energy block charge]"
-		--.."checkbox[3,3;ishighspeed;high speed lift mod;false;if selected the airship will fast lift and Consume ten times the energy.]"
-		.."checkbox[3,3;ishighspeed;high speed lift;"..tostring(airship.highspeed).."]"
+		--.."checkbox[3,3;ishighspeed;high speed mod;false;if selected the airship will fast lift and Consume ten times the energy.]"
+		.."checkbox[3,3;ishighspeed;high speed;"..tostring(airship.highspeed).."]"
 	if minetest.get_modpath("crafting") then
 		inventory_plus.get_formspec = function(player, page)
 		end
@@ -114,7 +115,7 @@ elseif minetest.get_modpath("unified_inventory") then
 	unified_inventory.register_page("convertor", {
 		get_formspec = function(player)
 			local name = player:get_player_name()
-			local formspec = "background[0.06,0.99;7.92,7.52;3d_convertor_ui_form.png]"
+			local formspec = "background[0.06,0.99;7.92,7.52;convertor_ui_form.png]"
 				.."label[0,0;Place the energy block to provide power for the airship  ]"
 				.."list[detached:"..name.."_convertor;convertor;0,1;2,3;]"
 				--.."image[2.5,0.75;2,4;"..convertor.textures[name].preview.."]"  --reserved 
@@ -127,11 +128,11 @@ elseif minetest.get_modpath("unified_inventory") then
 				.."button[7,3;1,1.5;Recharge;Recharge]"
 				.."list[detached:"..name.."_convertor;ShipStage;5,2;1,1;]"
 				.."tooltip[Recharge;Give the energy block charge]"
-				--.."checkbox[3,3;ishighspeed;high speed lift mod;false;if selected the airship will fast lift and Consume ten times the energy.]"
-				.."checkbox[3,3;ishighspeed;high speed lift;"..tostring(airship.highspeed).."]"
+				--.."checkbox[3,3;ishighspeed;high speed mod;false;if selected the airship will fast lift and Consume ten times the energy.]"
+				.."checkbox[3,3;ishighspeed;high speed;"..tostring(airship.highspeed).."]"
 				
 			if minetest.setting_getbool("unified_inventory_lite") then
-				formspec = "background[0.06,0.49;7.92,7.52;3d_convertor_ui_form.png]"
+				formspec = "background[0.06,0.49;7.92,7.52;convertor_ui_form.png]"
 					.."label[0,0;Place the energy block to provide power for the airship  ]"
 					.."list[detached:"..name.."_convertor;convertor;0,0.5;2,3;]"
 					--.."image[2.5,0.25;2,4;"..convertor.textures[name].preview.."]"  --reserved 
@@ -144,8 +145,8 @@ elseif minetest.get_modpath("unified_inventory") then
 					.."button[7,3;1,1.5;Recharge;Recharge]"
 					.."list[detached:"..name.."_convertor;ShipStage;5,2;1,1;]"
 					.."tooltip[Recharge;Give the energy block charge]"
-					--.."checkbox[3,3;ishighspeed;high speed lift mod;false;if selected the airship will fast lift and Consume ten times the energy.]"
-					.."checkbox[3,3;ishighspeed;high speed lift;"..tostring(airship.highspeed).."]"
+					--.."checkbox[3,3;ishighspeed;high speed mod;false;if selected the airship will fast lift and Consume ten times the energy.]"
+					.."checkbox[3,3;ishighspeed;high speed;"..tostring(airship.highspeed).."]"
 			end
 			return {formspec=formspec}
 		end,
@@ -154,21 +155,12 @@ elseif minetest.get_modpath("inventory_enhanced") then
 	inv_mod = "inventory_enhanced"
 end
 
-if minetest.get_modpath("skins") then
-	skin_mod = "skins"
-elseif minetest.get_modpath("simple_skins") then
-	skin_mod = "simple_skins"
-elseif minetest.get_modpath("u_skins") then
-	skin_mod = "u_skins"
-elseif minetest.get_modpath("wardrobe") then
-	skin_mod = "wardrobe"
-end
 
 convertor.def = {
 	state = 0,
 	count = 0,
 }
-
+--[[
 convertor.update_player_visuals = function(self, player)
 	if not player then
 		return
@@ -181,7 +173,7 @@ convertor.update_player_visuals = function(self, player)
 			self.textures[name].wielditem,
 		})
 	end
-end
+end --]]
 
 convertor.set_player_convertor= function(self, player)
 	local name, player_inv = convertor:get_valid_player(player, "[set_player_convertor]")
@@ -202,7 +194,7 @@ convertor.set_player_convertor= function(self, player)
 	for _,v in ipairs(self.elements) do
 		elements[v] = false
 	end
-	for i=1, 6 do
+--[[for i=1, 6 do
 		local stack = player_inv:get_stack("convertor", i)
 		local item = stack:get_name()
 		if stack:get_count() == 1 then
@@ -239,8 +231,8 @@ convertor.set_player_convertor= function(self, player)
 					end
 				end
 			end
-		end
-	end
+		end   
+	end   --]]
 --	local ChargerStack = player_inv:get_stack("charger", i)
 --		local item = stack:get_name()
 		--if stack:get_count() == 1 then
@@ -274,8 +266,8 @@ convertor.set_player_convertor= function(self, player)
 	self.def[name].speed = physics_o.speed
 	self.def[name].gravity = physics_o.gravity
 	self.def[name].fire = convertor_fire
-	self:update_player_visuals(player)
-end
+	self:update_player_visuals(player)   
+end   
 
 convertor.update_convertor= function(self, player)
 	local name, player_inv, convertor_inv, pos = convertor:get_valid_player(player, "[update_convertor]")
@@ -323,7 +315,7 @@ convertor.update_convertor= function(self, player)
 					if desc then
 						minetest.chat_send_player(name, "Your "..desc.." got destroyed!")
 					end
-					self:set_player_convertor(player)
+					--self:set_player_convertor(player)
 					convertor:update_inventory(player)
 				end
 				heal_max = heal_max + heal
@@ -357,7 +349,7 @@ convertor.get_preview = function(self, name)
 		return convertor:get_player_skin(name).."_preview.png"
 	end
 end
-
+--]]
 convertor.get_convertor_formspec = function(self, name)
 	if not convertor.textures[name] then
 		minetest.log("error", "3d_convertor: Player texture["..name.."] is nil [get_convertor_formspec]")
@@ -441,9 +433,9 @@ default.player_register_model("3d_convertor_character.b3d", {
 	},
 })  --]]
 --Fuel recharge energy values define:
-RechargeDef={{name="default:coal_lump",Charge=-500},{name="default:copper_lump",Charge=-2000},
-{name="default:iron_lump",Charge=-5000},{name="default:gold_lump",Charge=-50000},
-{name="default:mese_crystal",Charge=-65535}}
+RechargeDef={{name="default:coal_lump",Charge=500},{name="default:copper_lump",Charge=2000},
+{name="default:iron_lump",Charge=5000},{name="default:gold_lump",Charge=50000},
+{name="default:mese_crystal",Charge=65535}}
 -- Register Callbacks
 minetest.register_on_player_receive_fields(function(player, formname, fields)
 	local name = convertor:get_valid_player(player, "[on_player_receive_fields]")
@@ -472,14 +464,19 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 					break
 				end
 			end
-			ChargerStack:add_wear(reChargeVale)
+			local meta=ChargerStack:get_metadata()
+			local energyV=tonumber(meta)
+			local newV= energyV+reChargeVale
+			if newV>65535 then newV=65535 end
+			meta=tostring(newV)
+			ChargerStack:set_metadata(meta)
+			ChargerStack:add_wear(-reChargeVale)
 			convertor_inv:set_stack("charger", 1, ChargerStack)
 			playerinv:set_stack("charger", 1, ChargerStack)
 			FuelStack:set_count(FuelCOunt-1)
 			convertor_inv:set_stack("fuel", 1, FuelStack)  --must reset convertor_inv and playerinv together.
 			playerinv:set_stack("fuel", 1, FuelStack)
-			--print("now wear="..playerinv:get_stack("charger", 1):get_wear())
-				else 
+			else 
 				return
 		end
 	
@@ -499,23 +496,30 @@ minetest.register_on_joinplayer(function(player)
 	local convertor_inv = minetest.create_detached_inventory(name.."_convertor", {
 		on_put = function(inv, listname, index, stack, player)
 			player:get_inventory():set_stack(listname, index, stack)
-			convertor:set_player_convertor(player)
+			--convertor:set_player_convertor(player)
 			convertor:update_inventory(player)
-			--if listname=="convertor" then   --TODO:Put rare item,exsample for Water-spirit-orb:can pass through under water
-													--fire-spirit-orb can pass through in fire,protect life.  etc..
-													 
-			--end
+			if listname=="convertor" or listname=="charger" and stack:get_name()=="airshipland:Energyblock" then
+				local meta=stack:get_metadata()
+				if string.len(meta)>0  then
+					stack:set_wear(65535-tonumber(meta))  --reset wear to show amounts of energy  
+				else 
+					meta=tostring(65535-tonumber(stack:get_wear()))
+					stack:set_metadata(meta)
+				end	
+				inv:set_stack(listname, index, stack)  --must reset convertor_inv and playerinv together.
+				player_inv:set_stack(listname, index, stack)
+			end
 		end,
 		on_take = function(inv, listname, index, stack, player)
 			player:get_inventory():set_stack(listname, index, nil)
-			convertor:set_player_convertor(player)
+			--convertor:set_player_convertor(player)
 			convertor:update_inventory(player)
 		end,
 		on_move = function(inv, from_list, from_index, to_list, to_index, count, player)
 			local stack = inv:get_stack(to_list, to_index)
 			player_inv:set_stack(to_list, to_index, stack)
 			player_inv:set_stack(from_list, from_index, nil)
-			convertor:set_player_convertor(player)
+			--convertor:set_player_convertor(player)
 			convertor:update_inventory(player)
 		end,
 		allow_put = function(inv, listname, index, stack, player)
@@ -641,7 +645,7 @@ minetest.register_on_joinplayer(function(player)
 	end
 	for i=1, CONVERT_INIT_TIMES do
 		minetest.after(CONVERT_INIT_DELAY * i, function(player)
-			convertor:set_player_convertor(player)
+			--convertor:set_player_convertor(player)
 			if not inv_mod then
 				convertor:update_inventory(player)
 			end
@@ -686,7 +690,7 @@ if CONVERT_DROP == true or CONVERT_DESTROY == true then
 				player_inv:set_stack("convertor", i, nil)
 			end
 		end
-		convertor:set_player_convertor(player)
+		--convertor:set_player_convertor(player)
 		if inv_mod == "unified_inventory" then
 			unified_inventory.set_inventory_formspec(player, "craft")
 		elseif inv_mod == "inventory_plus" then
@@ -754,13 +758,9 @@ minetest.log("action","player on leaving.")
 			minetest.remove_node(pos)
 			minetest.log("action","---------------------------------airship was stored")
 		end
-
-
-
-
-
 	end
 end)
+--[[
 minetest.register_globalstep(function(dtime)
 	time = time + dtime
 	if time > CONVERT_UPDATE_TIME then
@@ -769,6 +769,6 @@ minetest.register_globalstep(function(dtime)
 		end
 		time = 0
 	end
-end)
+end)   --]]
 
 
