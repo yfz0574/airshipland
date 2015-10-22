@@ -50,22 +50,23 @@ airship = {
 	textures = {"default_mese_block.png"},
 
 	driver = nil,
+	--driveroffline=false,
 	highspeed=false,
 	v = 0,
 	last_v = 0,
 	removed = false
 }
-
-
 function airship.on_rightclick(self, clicker)
 	if not clicker or not clicker:is_player() then
 		return
 	end
 	local name = clicker:get_player_name()
+	local airshipdata=airshipdata.get(clicker:get_player_name(), "airshipland")
 	if self.driver and clicker == self.driver then
 		self.driver = nil
 		clicker:set_detach()
 		default.player_attached[name] = false
+		airshipdata.attched=false
 		default.player_set_animation(clicker, "stand" , 30)
 		local pos = clicker:getpos()
 		pos = {x = pos.x, y = pos.y + 0.2, z = pos.z}
@@ -77,6 +78,7 @@ function airship.on_rightclick(self, clicker)
 		clicker:set_attach(self.object, "",
 			{x = 0, y = 11, z = -3}, {x = 0, y = 0, z = 0})
 		default.player_attached[name] = true
+		airshipdata.attched=true
 		minetest.after(0.2, function()
 			default.player_set_animation(clicker, "sit" , 30)
 		end)
@@ -132,8 +134,11 @@ function airship.on_step(self, dtime)
 	
 	if self.driver then
 		name=self.driver:get_player_name()
+		if not name then return end
 		local player_inv = self.driver:get_inventory()
+		if not player_inv  then return end
 		local inv=minetest.get_inventory({type="detached", name=name.."_convertor"}) 
+			if not inv then return end
 		local pos=self.object:getpos()
 		local uppos,downpos={x=pos.x,y=pos.y+1,z=pos.z},{x=pos.x,y=pos.y-1,z=pos.z}
 		local newpos
@@ -411,4 +416,8 @@ minetest.register_craft({
 		{"default:mese_crystal", "default:mese_crystal", "default:mese_crystal"},
 	},
 })
+--airshipland= {pos={x=0,y=0,z=0},attched=false}
+--minetest.register_on_joinplayer(function(player)
+	--default.player_set_model(player, "3d_convertor_character.b3d")--TODO:add airship 3d model
 
+--end)

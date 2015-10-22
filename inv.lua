@@ -1,73 +1,34 @@
 CONVERT_MOD_NAME=modname
 
-CONVERT_INIT_DELAY = 1
-CONVERT_INIT_TIMES = 1
-CONVERT_BONES_DELAY = 1
-CONVERT_UPDATE_TIME = 1
-CONVERT_DROP = minetest.get_modpath("bones") ~= nil
-CONVERT_DESTROY = false
-CONVERT_LEVEL_MULTIPLIER = 1
-CONVERT_HEAL_MULTIPLIER = 1
-CONVERT_MATERIALS = {
-	wood = "group:wood",
-	cactus = "default:cactus",
-	steel = "default:steel_ingot",
-	bronze = "default:bronze_ingot",
-	diamond = "default:diamond",
-	gold = "default:gold_ingot",
-	mithril = "moreores:mithril_ingot",
-	crystal = "ethereal:crystal_ingot",
-}
-CONVERT_FIRE_PROTECT = minetest.get_modpath("ethereal") ~= nil
-CONVERT_FIRE_NODES = {
-	{"default:lava_source",     5, 4},
-	{"default:lava_flowing",    5, 4},
-	{"fire:basic_flame",        3, 4},
-	{"ethereal:crystal_spike",  2, 1},
-	{"bakedclay:safe_fire",     2, 1},
-	{"default:torch",           1, 1},
-}
 --TODO:inventory_plus mod support is not completed.some commented code is reserved sample for expand,
---Don't delete.
-local skin_mod = nil
+--Don't delete.  
+local skin_mod = nil  
 local inv_mod = nil
 local S = unified_inventory.gettext
 local modpath = minetest.get_modpath(CONVERT_MOD_NAME)
 local worldpath = minetest.get_worldpath()
-local input = io.open(modpath.."/convertor.conf", "r")
-if input then
-	dofile(modpath.."/convertor.conf")
-	input:close()
-	input = nil
-end
-input = io.open(worldpath.."/convertor.conf", "r")
-if input then
-	dofile(worldpath.."/convertor.conf")
-	input:close()
-	input = nil
-end
-if not minetest.get_modpath("moreores") then
-	CONVERT_MATERIALS.mithril = nil
-end
-if not minetest.get_modpath("ethereal") then
-	CONVERT_MATERIALS.crystal = nil
-end
-
--- override hot nodes so they do not hurt player anywhere but mod
-if CONVERT_FIRE_PROTECT == true then
-	for _, row in ipairs(CONVERT_FIRE_NODES) do
-		if minetest.registered_nodes[row[1]] then
-			minetest.override_item(row[1], {damage_per_second = 0})
-		end
-	end
-end
+--if not minetest.get_modpath("moreores") then
+	--CONVERT_MATERIALS.mithril = nil
+--end
+--if not minetest.get_modpath("ethereal") then
+	--CONVERT_MATERIALS.crystal = nil
+--end
+--
+--override hot nodes so they do not hurt player anywhere but mod
+--if CONVERT_FIRE_PROTECT == true then
+--	for _, row in ipairs(CONVERT_FIRE_NODES) do
+--		if minetest.registered_nodes[row[1]] then
+--			minetest.override_item(row[1], {damage_per_second = 0})
+--		end
+--	end
+--end
 
 local time = 0
 
 convertor= {
 	player_hp = {},
 	attchedairship={pos={x=0,y=0,z=0}},   --To prevent the player from the off-line after the loss of the ship maneuvering state
-	elements = {"head", "torso", "legs", "feet"},
+	elements = {"WaterSpriteOrb", "FireSpriteOrb", "WoodSpriteOrb", "EarthSpriteOrb","MetalSpriteOrb"},  --reserved for expand
 	physics = {"jump","speed","gravity"},
 	formspec = "size[8,8.5]list[detached:player_name_convertor;convertor;0,1;2,3;]"
 		--.."image[2,0.75;2,4;convertor_preview]"  --reserved 
@@ -156,25 +117,6 @@ elseif minetest.get_modpath("inventory_enhanced") then
 end
 
 
-convertor.def = {
-	state = 0,
-	count = 0,
-}
---[[
-convertor.update_player_visuals = function(self, player)
-	if not player then
-		return
-	end
-	local name = player:get_player_name()
-	if self.textures[name] then
-		default.player_set_textures(player, {
-			self.textures[name].skin,
-			self.textures[name].convertor,
-			self.textures[name].wielditem,
-		})
-	end
-end --]]
-
 convertor.set_player_convertor= function(self, player)
 	local name, player_inv = convertor:get_valid_player(player, "[set_player_convertor]")
 	if not name then
@@ -194,177 +136,8 @@ convertor.set_player_convertor= function(self, player)
 	for _,v in ipairs(self.elements) do
 		elements[v] = false
 	end
---[[for i=1, 6 do
-		local stack = player_inv:get_stack("convertor", i)
-		local item = stack:get_name()
-		if stack:get_count() == 1 then
-			local def = stack:get_definition()
-			for k, v in pairs(elements) do
-				if v == false then
-					local level = def.groups["convertor_"..k]
-					if level then
-						local texture = item:gsub("%:", "_")
-						table.insert(textures, texture..".png")
-						preview = preview.."^"..texture.."_preview.png"
-						convertor_level = convertor_level + level
-						state = state + stack:get_wear()
-						items = items + 1
-						local heal = def.groups["convertor_heal"] or 0
-						convertor_heal = convertor_heal + heal
-						local fire = def.groups["convertor_fire"] or 0
-						convertor_fire = convertor_fire + fire
-						for kk,vv in ipairs(self.physics) do
-							local o_value = def.groups["physics_"..vv]
-							if o_value then
-								physics_o[vv] = physics_o[vv] + o_value
-							end
-						end
-						local mat = string.match(item, "%:.+_(.+)$")
-						if material.type then
-							if material.type == mat then
-								material.count = material.count + 1
-							end
-						else
-							material.type = mat
-						end
-						elements[k] = true
-					end
-				end
-			end
-		end   
-	end   --]]
---	local ChargerStack = player_inv:get_stack("charger", i)
---		local item = stack:get_name()
-		--if stack:get_count() == 1 then
-		
-		
-	if minetest.get_modpath("shields") then
-		convertor_level = convertor_level * 0.9
-	end
-	if material.type and material.count == #self.elements then
-		convertor_level = convertor_level * 1.1
-	end
-	convertor_level = convertor_level * CONVERT_LEVEL_MULTIPLIER
-	convertor_heal = convertor_heal * CONVERT_HEAL_MULTIPLIER
-	if #textures > 0 then
-		convertor_texture = table.concat(textures, "^")
-	end
-	local convertor_groups = {fleshy=100}
-	if convertor_level > 0 then
-		convertor_groups.level = math.floor(convertor_level / 20)
-		convertor_groups.fleshy = 100 - convertor_level
-	end
---	player:set_convertor_groups(convertor_groups)
---	player:set_physics_override(physics_o)
-	self.textures[name].convertor= convertor_texture
-	self.textures[name].preview = preview
-	self.def[name].state = state
-	self.def[name].count = items
-	self.def[name].level = convertor_level
-	self.def[name].heal = convertor_heal
-	self.def[name].jump = physics_o.jump
-	self.def[name].speed = physics_o.speed
-	self.def[name].gravity = physics_o.gravity
-	self.def[name].fire = convertor_fire
-	self:update_player_visuals(player)   
+
 end   
-
-convertor.update_convertor= function(self, player)
-	local name, player_inv, convertor_inv, pos = convertor:get_valid_player(player, "[update_convertor]")
-	if not name then
-		return
-	end
-	local hp = player:get_hp() or 0
-	if CONVERT_FIRE_PROTECT == true then
-		pos.y = pos.y + 1.4 -- head level
-		local node_head = minetest.get_node(pos).name
-		pos.y = pos.y - 1.2 -- feet level
-		local node_feet = minetest.get_node(pos).name
-		-- is player inside a hot node?
-		for _, row in ipairs(CONVERT_FIRE_NODES) do
-			-- check for fire protection, if not enough then get hurt
-			if row[1] == node_head or row[1] == node_feet then
-				if hp > 0 and convertor.def[name].fire < row[2] then
-					hp = hp - row[3] * CONVERT_UPDATE_TIME
-					player:set_hp(hp)
-					break
-				end
-			end
-		end
-	end	
-	if hp <= 0 or hp == self.player_hp[name] then
-		return
-	end
-	if self.player_hp[name] > hp then
-		local heal_max = 0
-		local state = 0
-		local items = 0
-		for i=1, 6 do
-			local stack = player_inv:get_stack("convertor", i)
-			if stack:get_count() > 0 then
-				local use = stack:get_definition().groups["convertor_use"] or 0
-				local heal = stack:get_definition().groups["convertor_heal"] or 0
-				local item = stack:get_name()
-				stack:add_wear(use)
-				convertor_inv:set_stack("convertor", i, stack)
-				player_inv:set_stack("convertor", i, stack)
-				state = state + stack:get_wear()
-				items = items + 1
-				if stack:get_count() == 0 then
-					local desc = minetest.registered_items[item].description
-					if desc then
-						minetest.chat_send_player(name, "Your "..desc.." got destroyed!")
-					end
-					--self:set_player_convertor(player)
-					convertor:update_inventory(player)
-				end
-				heal_max = heal_max + heal
-			end
-		end
-		self.def[name].state = state
-		self.def[name].count = items
-		heal_max = heal_max * CONVERT_HEAL_MULTIPLIER
-		if heal_max > math.random(100) then
-			player:set_hp(self.player_hp[name])
-			return
-		end
-	end
-	self.player_hp[name] = hp
-end
---reserved sample code for expand airship function 
-convertor.get_player_skin = function(self, name)
-	local skin = nil
-	if skin_mod == "skins" or skin_mod == "simple_skins" then
-		skin = skins.skins[name]
-	elseif skin_mod == "u_skins" then
-		skin = u_skins.u_skins[name]
-	elseif skin_mod == "wardrobe" then
-		skin = string.gsub(wardrobe.playerSkins[name], "%.png$","")
-	end
-	return skin or convertor.default_skin
-end
-
-convertor.get_preview = function(self, name)
-	if skin_mod == "skins" then
-		return convertor:get_player_skin(name).."_preview.png"
-	end
-end
---]]
-convertor.get_convertor_formspec = function(self, name)
-	if not convertor.textures[name] then
-		minetest.log("error", "3d_convertor: Player texture["..name.."] is nil [get_convertor_formspec]")
-		return ""
-	end
-	if not convertor.def[name] then
-		minetest.log("error", "3d_convertor: Convertor  def["..name.."] is nil [get_convertor_formspec]")
-		return ""
-	end
-	local formspec = convertor.formspec:gsub("player_name", name)
-	formspec = formspec:gsub("convertor_preview", convertor.textures[name].preview)
-	--formspec = formspec:gsub("convertor_charger", convertor.def[name].charger)
-
-	return formspec
-end
 
 convertor.update_inventory = function(self, player)
 	local name = convertor:get_valid_player(player, "[set_player_convertor]")
@@ -414,24 +187,7 @@ convertor.get_valid_player = function(self, player, msg)
 	end
 	return name, player_inv, convertor_inv, pos
 end
---[[  --sample code reserved for expand to airship Model
--- Register Player Model
-default.player_register_model("3d_convertor_character.b3d", {
-	animation_speed = 30,
-	textures = {
-		convertor.default_skin..".png",
-		"3d_convertor_trans.png",
-		"3d_convertor_trans.png",
-	},
-	animations = {
-		stand = {x=0, y=79},
-		lay = {x=162, y=166},
-		walk = {x=168, y=187},
-		mine = {x=189, y=198},
-		walk_mine = {x=200, y=219},
-		sit = {x=81, y=160},
-	},
-})  --]]
+
 --Fuel recharge energy values define:
 RechargeDef={{name="default:coal_lump",Charge=500},{name="default:copper_lump",Charge=2000},
 {name="default:iron_lump",Charge=5000},{name="default:gold_lump",Charge=50000},
@@ -490,8 +246,32 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 end)
 
 minetest.register_on_joinplayer(function(player)
-	default.player_set_model(player, "3d_convertor_character.b3d")--TODO:add airship 3d model
 	local name = player:get_player_name()
+	local airshipdata=airshipdata.get(player:get_player_name(), "airshipland")
+	if airshipdata.attched then
+		local airshippos=airshipdata.pos
+		if not airshippos then
+			airshippos=player:getpos()
+		end
+		--minetest.item_place(itemstack, player, {type="node", under=airshippos, above=airshippos})
+		local airship 
+		if airshipdata.removed then
+			airship = minetest.add_entity(airshippos, "airshipland:airship")
+			airshipdata.removed=false
+		end
+			if airship then
+				local luaentity=airship:get_luaentity()
+				luaentity.driver=player
+				player:set_attach(luaentity.object, "",{x = 0, y = 11, z = -3}, {x = 0, y = 0, z = 0})
+				default.player_attached[name] = true
+				airshipdata.removed=false
+				minetest.after(0.2, function()
+					default.player_set_animation(player, "sit" , 30)
+					luaentity.object:setyaw(player:get_look_yaw() - math.pi / 2)
+				end)
+			end
+	end
+	
 	local player_inv = player:get_inventory()
 	local convertor_inv = minetest.create_detached_inventory(name.."_convertor", {
 		on_put = function(inv, listname, index, stack, player)
@@ -595,180 +375,29 @@ minetest.register_on_joinplayer(function(player)
 		convertor_inv:add_item("convertor", player_inv:get_stack(list, 1))
 		player_inv:set_stack(list, 1, nil)
 	end
-	-- TODO Remove this on the next version upate
-
-	convertor.player_hp[name] = 0
-	convertor.def[name] = {
-		state = 0,
-		count = 0,
-		level = 0,
-		heal = 0,
-		jump = 1,
-		speed = 1,
-		gravity = 1,
-		fire = 0,
-	}
-	convertor.textures[name] = {
-		skin = convertor.default_skin..".png",
-		convertor= "3d_convertor_trans.png",
-		wielditem = "3d_convertor_trans.png",
-		preview = convertor.default_skin.."_preview.png",
-	}
-	if skin_mod == "skins" then
-		local skin = skins.skins[name]
-		if skin and skins.get_type(skin) == skins.type.MODEL then
-			convertor.textures[name].skin = skin..".png"
-		end
-	elseif skin_mod == "simple_skins" then
-		local skin = skins.skins[name]
-		if skin then
-		    convertor.textures[name].skin = skin..".png"
-		end
-	elseif skin_mod == "u_skins" then
-		local skin = u_skins.u_skins[name]
-		if skin and u_skins.get_type(skin) == u_skins.type.MODEL then
-			convertor.textures[name].skin = skin..".png"
-		end
-	elseif skin_mod == "wardrobe" then
-		local skin = wardrobe.playerSkins[name]
-		if skin then
-			convertor.textures[name].skin = skin
-		end
-	end
-	if minetest.get_modpath("player_textures") then
-		local filename = minetest.get_modpath("player_textures").."/textures/player_"..name
-		local f = io.open(filename..".png")
-		if f then
-			f:close()
-			convertor.textures[name].skin = "player_"..name..".png"
-		end
-	end
-	for i=1, CONVERT_INIT_TIMES do
-		minetest.after(CONVERT_INIT_DELAY * i, function(player)
-			--convertor:set_player_convertor(player)
-			if not inv_mod then
-				convertor:update_inventory(player)
+	
+end)
+minetest.register_on_leaveplayer(function(player)  --is no effect,how to do?
+	local name = player:get_player_name()
+	--print("begin leaving!!!")
+	if	default.player_attached[player:get_player_name()] then 
+		print("player alse attached.")
+		local pos=player:getpos()
+		local parent=player:get_attach()  --  : returns parent, bone, position, rotation or nil if it isn't attached
+		local luaentity
+		if parent then
+			luaentity=parent:get_luaentity()
+			print("while player leaving ,also attached is "..luaentity.name)
+			local airshipdata=airshipdata.get(player:get_player_name(), "airshipland")
+			if luaentity.name=="airshipland:airship" then
+				airshipdata.attched=true
+				airshipdata.pos=pos
+				parent:remove()
+				airshipdata.removed=true
 			end
-		end, player)
+		end	
 	end
 	
-	--     [get airship storge status]
-	local pos=player:getpos()
-	local Item=convertor_inv:get_stack("ShipStage", 1)
-	if not Item:is_empty() then
-		local meta=Item:get_metadata() 
-		local driver=meta:get_string("driver")
-		if not dirver then
-			local restorepos=meta:get_string("pos")
-			local nod=minetest.add_node(restorepos)
-			--convertor_inv:set_stack("ShipStage", 1, nil)
-			--player_inv:set_stack("ShipStage", 1, nil)
-			print("airship restored")
-		player:set_attach(nod, "", {x=0,y=0.2,z=0}, {x=0,y=0,z=0})
-		end
-	end
+	--airshipdata.save(name)
 end)
-
-if CONVERT_DROP == true or CONVERT_DESTROY == true then
-	convertor.drop_convertor= function(pos, stack)
-		local obj = minetest.add_item(pos, stack)
-		if obj then
-			obj:setvelocity({x=math.random(-1, 1), y=5, z=math.random(-1, 1)})
-		end
-	end
-	minetest.register_on_dieplayer(function(player)
-		local name, player_inv, convertor_inv, pos = convertor:get_valid_player(player, "[on_dieplayer]")
-		if not name then
-			return
-		end
-		local drop = {}
-		for i=1, player_inv:get_size("convertor") do
-			local stack = convertor_inv:get_stack("convertor", i)
-			if stack:get_count() > 0 then
-				table.insert(drop, stack)
-				convertor_inv:set_stack("convertor", i, nil)
-				player_inv:set_stack("convertor", i, nil)
-			end
-		end
-		--convertor:set_player_convertor(player)
-		if inv_mod == "unified_inventory" then
-			unified_inventory.set_inventory_formspec(player, "craft")
-		elseif inv_mod == "inventory_plus" then
-			local formspec = inventory_plus.get_formspec(player,"main")
-			inventory_plus.set_inventory_formspec(player, formspec)
-		else
-			convertor:update_inventory(player)
-		end
-		if CONVERT_DESTROY == false then
-			minetest.after(CONVERT_BONES_DELAY, function()
-				local node = minetest.get_node(vector.round(pos))
-				if node then
-					if node.name == "bones:bones" then
-						local meta = minetest.get_meta(vector.round(pos))
-						local owner = meta:get_string("owner")
-						local inv = meta:get_inventory()
-						for _,stack in ipairs(drop) do
-							if name == owner and inv:room_for_item("main", stack) then
-								inv:add_item("main", stack)
-							else
-								convertor.drop_convertor(pos, stack)
-							end
-						end
-					end
-				else
-					for _,stack in ipairs(drop) do
-						convertor.drop_convertor(pos, stack)
-					end
-				end
-			end)
-		end
-	end)
-end
-minetest.register_on_leaveplayer(function(player)  --is no effect,how to do?
-local name = player:get_player_name()
-local convertor_inv = minetest.get_inventory({type="detached", name=name.."_convertor"})
-local player_inv = player:get_inventory()
-minetest.log("action","player on leaving.")
-			convertor_inv:set_stack("convertor", 1, ItemStack("default:stone"))
-			player_inv:set_stack("convertor", 1, ItemStack("default:stone"))
-	if	default.player_attached[player:get_player_name()] then 
-		local pos=player:getpos()
-		local nod=minetest.get_node(pos)
-		minetest.log("action","--prepare to store airship")
-		if nod:get_name()=="airshipland:airship" then
-			local meta=minetest.get_metadata(pos)
-			--meta:set_string("owner",name)
-			--meta:set_string("pos",tostring(pos))
-			--meta:from_table( { driver=name,pos=tostring(pos) } )
-			local def=nod:get_definition()
-			local Item=ItemStack(def)
-			--meta:set_string("doors_owner", pn)
-			--local data
-			--local data_str = minetest.serialize(data)
-			--local data_str =""      --meta:set_string("infotext", "Chest");
-			Item:set_metadata(meta)
-			--stack:get_metadata()   new_stack:set_metadata(data_str)   local inv = meta:get_inventory()
-			--meta:set_string("infotext", "Furnace is empty")
-			--minetest.add_item(pos, "airshipland:airship")
-			--minetest.item_place(itemstack, placer, pointed_thing, param2)
-			convertor_inv:set_stack("convertor", 1, ItemStack("default:dirt"))
-			player_inv:set_stack("convertor", 1, ItemStack("default:dirt"))
-			convertor_inv:set_stack("ShipStage", 1, Item)
-			player_inv:set_stack("ShipStage", 1, Item)
-			minetest.remove_node(pos)
-			minetest.log("action","---------------------------------airship was stored")
-		end
-	end
-end)
---[[
-minetest.register_globalstep(function(dtime)
-	time = time + dtime
-	if time > CONVERT_UPDATE_TIME then
-		for _,player in ipairs(minetest.get_connected_players()) do
-			convertor:update_convertor(player)
-		end
-		time = 0
-	end
-end)   --]]
-
 
